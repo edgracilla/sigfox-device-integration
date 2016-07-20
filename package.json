@@ -1,0 +1,32 @@
+{
+  "name": "sigfox-device-integration",
+  "description": "SIGFOX Device Integration Plugin for the Reekoh IoT Application Integration Platform. Allows a Reekoh instance to integrate with SIGFOX through its REST API and sync device information.",
+  "version": "1.0.0",
+  "author": "Reekoh, Inc.",
+  "main": "app.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Reekoh/sigfox-device-integration"
+  },
+  "dependencies": {
+    "async": "^1.5.2",
+    "lodash.get": "^4.3.0",
+    "lodash.isempty": "^4.2.1",
+    "request": "^2.73.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-cli": "^1.2.2",
+    "gulp-jshint": "^2.0.1",
+    "gulp-json-lint": "^0.1.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-plumber": "^1.1.0",
+    "jshint": "^2.9.2",
+    "mocha": "^2.5.3",
+    "should": "^10.0.0"
+  },
+  "license": "LGPL-3.0"
+}
