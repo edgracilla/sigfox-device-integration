@@ -1,0 +1,14 @@
+{
+  "username": {
+    "label": "Username",
+    "type": "String",
+    "required": true,
+    "help": "Username to use for authenticating requests to the SIGFOX REST API."
+  },
+  "password": {
+    "label": "Password",
+    "type": "Password",
+    "required": true,
+    "help": "Password to use for authenticating requests to the SIGFOX REST API."
+  }
+}
