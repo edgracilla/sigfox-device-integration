@@ -8,18 +8,7 @@ var get      = require('lodash.get'),
 
 let syncDevices = function (devices, callback) {
 	async.each(devices, (device, done) => {
-		let id = device.id;
-		let name = device.name;
-
-		delete device.id;
-		delete device.name;
-
-
-		platform.syncDevice(Object.assign({}, {
-			_id: id,
-			name: name,
-			metadata: device
-		}), done);
+		platform.syncDevice(device, done);
 	}, callback);
 };
 
