@@ -85,7 +85,7 @@ Platform.init = function () {
 
 /**
  * Add or update 3rd party service devices to Reekoh devices.
- * @param {object} [device] Device metadata.
+ * @param {string} device Device information.
  * @param {function} [callback] Optional callback to be called once the signal has been sent.
  */
 Platform.prototype.syncDevice = function (device, callback) {
@@ -93,6 +93,8 @@ Platform.prototype.syncDevice = function (device, callback) {
 		};
 
 	setImmediate(() => {
+		if (!device || !isString(device)) return callback(new Error('Device data must be represented as a serialized JSON String.'));
+
 		process.send({
 			type: 'upsertdevice',
 			data: device
