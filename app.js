@@ -8,7 +8,7 @@ var get      = require('lodash.get'),
 
 let syncDevices = function (devices, callback) {
 	async.each(devices, (device, done) => {
-		platform.syncDevice(device, done);
+		platform.syncDevice(JSON.stringify(device), done);
 	}, callback);
 };
 
