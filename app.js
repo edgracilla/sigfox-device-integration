@@ -23,6 +23,7 @@ platform.on('sync', function () {
 		}
 	], (error, deviceTypes) => {
 		if (error) return platform.handleException(error);
+		if (isEmpty(deviceTypes.data)) return platform.handleException(new Error('No devices types found.'));
 
 		async.each(deviceTypes.data, (deviceType, done) => {
 			let isInitial = true;
