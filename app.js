@@ -1,99 +1,109 @@
-'use strict';
+'use strict'
 
-var get      = require('lodash.get'),
-	async    = require('async'),
-	sigfox   = require('./sigfox'),
-	isEmpty  = require('lodash.isempty'),
-	platform = require('./platform');
+const async = require('async')
+const get = require('lodash.get')
+const isEmpty = require('lodash.isempty')
+
+const reekoh = require('demo-reekoh-node')
+const _plugin = new reekoh.plugins.DeviceSync()
+
+let sigfox = require('./sigfox')
+
+let _options = {
+  username: '577b580c50057436eb643762',
+  password: '8211542d87e3764287c121a1b75b4b5c'
+}
 
 let syncDevices = function (devices, callback) {
-	async.each(devices, (device, done) => {
-		platform.syncDevice(JSON.stringify(device), done);
-	}, callback);
-};
+  async.each(devices, (device, done) => {
+    _plugin.syncDevice(device)
+      .then(() => {
+        done()
+      }).catch((err) => {
+        done(err)
+      })
+  }, callback)
+}
 
-/**
- * Emitted when the platform issues a sync request. Means that the device integration should fetch updates from the
- * 3rd party service.
- */
-platform.on('sync', function () {
-	async.waterfall([
-		(callback) => {
-			sigfox.getDeviceTypes(callback);
-		}
-	], (error, deviceTypes) => {
-		if (error) return platform.handleException(error);
-		if (isEmpty(deviceTypes.data)) return platform.handleException(new Error('No devices types found.'));
+_plugin.once('ready', function () {
+  sigfox.configure(_options)
 
-		async.each(deviceTypes.data, (deviceType, done) => {
-			let isInitial = true;
-			let hasMoreResults = true;
+  _plugin.log('Device sync has been initialized.')
+  setImmediate(() => { process.send({ type: 'ready' }) })
+})
 
-			async.whilst(() => {
-				return hasMoreResults;
-			}, (cb) => {
-				if (isInitial) {
-					sigfox.getDevices(deviceType.id, (error, devices) => {
-						if (error) {
-							hasMoreResults = false;
-							platform.handleException(error);
-							return cb();
-						}
+_plugin.on('sync', function () {
+  async.waterfall([
+    (callback) => {
+      sigfox.getDeviceTypes(callback)
+    }
+  ], (error, deviceTypes) => {
+    if (error) return _plugin.logException(error)
+    if (isEmpty(deviceTypes.data)) return _plugin.logException(new Error('No devices types found.'))
 
-						if (!isEmpty(devices)) {
-							hasMoreResults = !isEmpty(get(devices, 'paging.next')) ? get(devices, 'paging.next') : false;
-							syncDevices(get(devices, 'data'), (syncError) => {
-								platform.handleException(syncError);
-								cb();
-							});
-						}
-						else {
-							hasMoreResults = false;
-							cb();
-						}
-					});
-				}
-				else {
-					sigfox.getMoreDevices(hasMoreResults, (error, devices) => {
-						if (error) {
-							hasMoreResults = false;
-							platform.handleException(error);
-							return cb();
-						}
+    async.each(deviceTypes.data, (deviceType, done) => {
+      let isInitial = true
+      let hasMoreResults = true
 
-						if (!isEmpty(devices)) {
-							hasMoreResults = !isEmpty(get(devices, 'paging.next')) ? get(devices, 'paging.next') : false;
-							syncDevices(get(devices, 'data'), (syncError) => {
-								platform.handleException(syncError);
-								cb();
-							});
-						}
-						else {
-							hasMoreResults = false;
-							cb();
-						}
-					});
-				}
-			}, done);
-		});
-	});
-});
+      async.whilst(() => {
+        return hasMoreResults
+      }, (cb) => {
+        if (isInitial) {
+          sigfox.getDevices(deviceType.id, (error, devices) => {
+            if (error) {
+              hasMoreResults = false
+              return _plugin.logException(error)
+                .then(cb)
+            }
 
-/**
- * Emitted when the platform shuts down the plugin. The Device Integration should perform cleanup of the resources on this event.
- */
-platform.once('close', function () {
-	platform.notifyClose();
-});
+            if (!isEmpty(devices)) {
+              hasMoreResults = !isEmpty(get(devices, 'paging.next')) ? get(devices, 'paging.next') : false
+              syncDevices(get(devices, 'data'), (syncError) => {
+                if (syncError) return _plugin.logException(syncError) .then(cb)
+              })
+            } else {
+              hasMoreResults = false
+              cb()
+            }
+          })
+        } else {
+          sigfox.getMoreDevices(hasMoreResults, (error, devices) => {
+            if (error) {
+              hasMoreResults = false
+              return _plugin.logException(error)
+                .then(cb)
+            }
 
-/**
- * Emitted when the platform bootstraps the plugin. The plugin should listen once and execute its init process.
- * Afterwards, platform.notifyReady() should be called to notify the platform that the init process is done.
- * @param {object} options The parameters or options. Specified through config.json.
- */
-platform.once('ready', function (options) {
-	sigfox.configure(options);
+            if (!isEmpty(devices)) {
+              hasMoreResults = !isEmpty(get(devices, 'paging.next')) ? get(devices, 'paging.next') : false
+              syncDevices(get(devices, 'data'), (syncError) => {
+                return _plugin.logException(syncError)
+                  .then(cb)
+              })
+            } else {
+              hasMoreResults = false
+              cb()
+            }
+          })
+        }
+      }, (err) => {
+        if (err) return _plugin.logException(err)
+        process.send({ type: 'syncDone' })
+      })
+    })
 
-	platform.notifyReady();
-	platform.log('Device integration has been initialized.');
-});
+    process.send({ type: 'syncDone' })
+  })
+})
+
+_plugin.on('adddevice', function (device) {
+  // no adddevice in old version
+})
+
+_plugin.on('updatedevice', function (device) {
+  // no updatedevice in old version
+})
+
+_plugin.on('removedevice', function (device) {
+  // no removedevice in old version
+})
