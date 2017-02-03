@@ -9,11 +9,6 @@ const _plugin = new reekoh.plugins.DeviceSync()
 
 let sigfox = require('./sigfox')
 
-let _options = {
-  username: '577b580c50057436eb643762',
-  password: '8211542d87e3764287c121a1b75b4b5c'
-}
-
 let syncDevices = function (devices, callback) {
   async.each(devices, (device, done) => {
     _plugin.syncDevice(device)
@@ -26,10 +21,13 @@ let syncDevices = function (devices, callback) {
 }
 
 _plugin.once('ready', function () {
-  sigfox.configure(_options)
+  sigfox.configure({
+    username: process.env.SIGFOX_USERNAME,
+    password: process.env.SIGFOX_PASSWORD
+  })
 
   _plugin.log('Device sync has been initialized.')
-  setImmediate(() => { process.send({ type: 'ready' }) })
+  setImmediate(() => { process.send({ type: 'ready' }) }) // for mocha
 })
 
 _plugin.on('sync', function () {
@@ -88,7 +86,7 @@ _plugin.on('sync', function () {
         }
       }, (err) => {
         if (err) return _plugin.logException(err)
-        process.send({ type: 'syncDone' })
+        process.send({ type: 'syncDone' }) // for mocha
       })
     })
 

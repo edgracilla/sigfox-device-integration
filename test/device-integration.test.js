@@ -17,6 +17,9 @@ describe('Device-integration', function () {
     process.env.PLUGIN_ID = 'demo.dev-sync'
     process.env.BROKER = 'amqp://guest:guest@127.0.0.1/'
 
+    process.env.SIGFOX_USERNAME = '577b580c50057436eb643762'
+    process.env.SIGFOX_PASSWORD = '8211542d87e3764287c121a1b75b4b5c'
+
     amqp.connect(process.env.BROKER)
       .then((conn) => {
         _conn = conn
