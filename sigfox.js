@@ -23,7 +23,7 @@ module.exports.getDevices = function (deviceType, callback) {
     auth: this.credentials
   }, (error, response, body) => {
     callback(error, body)
-})
+  })
 }
 
 module.exports.getMoreDevices = function (nextUrl, callback) {

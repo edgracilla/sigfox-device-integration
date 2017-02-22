@@ -1,15 +1,15 @@
 'use strict'
 
 const async = require('async')
+const reekoh = require('reekoh')
 const get = require('lodash.get')
 const isEmpty = require('lodash.isempty')
 
-const reekoh = require('demo-reekoh-node')
-const _plugin = new reekoh.plugins.DeviceSync()
+const _plugin = new reekoh.plugins.InventorySync()
 
 let sigfox = require('./sigfox')
 
-let syncDevices = function (devices, callback) {
+let syncDevices = (devices, callback) => {
   async.each(devices, (device, done) => {
     _plugin.syncDevice(device)
       .then(() => {
@@ -20,17 +20,7 @@ let syncDevices = function (devices, callback) {
   }, callback)
 }
 
-_plugin.once('ready', function () {
-  sigfox.configure({
-    username: process.env.SIGFOX_USERNAME,
-    password: process.env.SIGFOX_PASSWORD
-  })
-
-  _plugin.log('Device sync has been initialized.')
-  setImmediate(() => { process.send({ type: 'ready' }) }) // for mocha
-})
-
-_plugin.on('sync', function () {
+_plugin.on('sync', () => {
   async.waterfall([
     (callback) => {
       sigfox.getDeviceTypes(callback)
@@ -57,7 +47,7 @@ _plugin.on('sync', function () {
             if (!isEmpty(devices)) {
               hasMoreResults = !isEmpty(get(devices, 'paging.next')) ? get(devices, 'paging.next') : false
               syncDevices(get(devices, 'data'), (syncError) => {
-                if (syncError) return _plugin.logException(syncError) .then(cb)
+                if (syncError) return _plugin.logException(syncError).then(cb)
               })
             } else {
               hasMoreResults = false
@@ -86,7 +76,7 @@ _plugin.on('sync', function () {
         }
       }, (err) => {
         if (err) return _plugin.logException(err)
-        process.send({ type: 'syncDone' }) // for mocha
+        process.send({ type: 'syncDone' })
       })
     })
 
@@ -94,14 +84,24 @@ _plugin.on('sync', function () {
   })
 })
 
-_plugin.on('adddevice', function (device) {
+_plugin.on('adddevice', (device) => {
   // no adddevice in old version
 })
 
-_plugin.on('updatedevice', function (device) {
+_plugin.on('updatedevice', (device) => {
   // no updatedevice in old version
 })
 
-_plugin.on('removedevice', function (device) {
+_plugin.on('removedevice', (device) => {
   // no removedevice in old version
+})
+
+_plugin.once('ready', () => {
+  sigfox.configure({
+    username: _plugin.config.username,
+    password: _plugin.config.password
+  })
+
+  _plugin.log('Device sync has been initialized.')
+  process.send({ type: 'ready' })
 })
