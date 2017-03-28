@@ -1,18 +1,16 @@
-FROM node
+FROM node:boron
 
 MAINTAINER Reekoh
 
-WORKDIR /home
+RUN apt-get update && apt-get install -y build-essential
+
+RUN mkdir -p /home/node/sigfox-device-integration
+COPY . /home/node/sigfox-device-integration
+
+WORKDIR /home/node/sigfox-device-integration
 
 # Install dependencies
-ADD . /home
-RUN npm install
+RUN npm install pm2 yarn -g
+RUN yarn install
 
-# setting need environment variables
-ENV PLUGIN_ID="demo.device-sync" \
-    CONFIG="{}" \
-    LOGGERS="" \
-    EXCEPTION_LOGGERS="" \
-    BROKER="amqp://guest:guest@172.17.0.2/"
-
-CMD ["node", "app"]
+CMD ["pm2-docker", "--json", "app.yml"]

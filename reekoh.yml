@@ -1,0 +1,33 @@
+apiVersion: 1.0.0
+kind: Plugin
+metadata:
+  name: SIGFOX Inventory Sync
+  description: SIGFOX Device Integration Plugin for the Reekoh IoT Application Integration Platform. Allows a Reekoh instance to integrate with SIGFOX through its REST API and sync device information.
+  documentation: README.md
+  icon: asset/icon/reekoh200x200.png
+  signupLink: https://myservice.com/signup # ??
+  type: InventorySync
+  price: 0
+  tags:
+    - inventory-sync
+    - sigfox
+  config:
+    username:
+      label: REST API Login
+      type: String
+      maxLength: 1000
+      required: true
+      help: "Username to use for authenticating requests to the SIGFOX REST API."
+    password:
+      label: REST API Password
+      type: Password
+      maxLength: 1000
+      required: true
+      help: "Password to use for authenticating requests to the SIGFOX REST API."
+
+  consumerType: pull
+  
+  release:
+    version: 1.0.0
+    notes: path/to/RELEASENOTESv1.0.0.md # ??
+    image: path/to/docker/image # ??
